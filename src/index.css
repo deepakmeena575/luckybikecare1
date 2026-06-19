@@ -43,10 +43,8 @@
 @media print {
   body {
     background: white !important;
-    color: black !important;
-  }
-  * {
-    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .no-print {
     display: none !important;
@@ -61,5 +59,6 @@
   }
   .print-area {
     border: none !important;
+    box-shadow: none !important;
   }
 }

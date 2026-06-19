@@ -71,7 +71,7 @@ export const DashboardScreen: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
         {/* Upcoming Reminders */}
         <div className="glass-card p-5">
           <div className="flex items-center justify-between mb-4">
@@ -144,6 +144,51 @@ export const DashboardScreen: React.FC = () => {
               </button>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Recent Services */}
+      <div className="glass-card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+            <FileText size={18} className="text-primary-500" />
+            <span>Recent Services</span>
+          </h2>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-gray-500 uppercase bg-gray-50/50">
+              <tr>
+                <th className="px-4 py-3 font-medium rounded-tl-lg rounded-bl-lg">Date</th>
+                <th className="px-4 py-3 font-medium">Customer</th>
+                <th className="px-4 py-3 font-medium">Vehicle</th>
+                <th className="px-4 py-3 font-medium">Amount</th>
+                <th className="px-4 py-3 font-medium rounded-tr-lg rounded-br-lg text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.recentRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-6 text-gray-500">No recent services.</td>
+                </tr>
+              ) : (
+                stats.recentRecords.map(record => (
+                  <tr key={record.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-600">{format(new Date(record.dateOfService), 'dd MMM yyyy')}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{record.customerName}</td>
+                    <td className="px-4 py-3 text-gray-600">{record.vehicleNumber}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{formatCurrency(record.totalCost)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${record.dueAmount === 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                        {record.dueAmount === 0 ? 'Paid' : 'Due'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import { ServiceRecord } from '../types';
 import { format } from 'date-fns';
 import { formatCurrency } from '../utils';
 import { BottomSheet } from './BottomSheet';
-import { Printer, MapPin, Phone } from 'lucide-react';
+import { Printer, Phone } from 'lucide-react';
 
 interface InvoiceModalProps {
   record: ServiceRecord | null;
@@ -25,18 +25,9 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ record, onClose }) =
   };
 
   return (
-    <BottomSheet isOpen={!!record} onClose={onClose} title={`Invoice ${record.id}`}>
-      <div className="print-area bg-white text-gray-900 border border-gray-200 rounded-xl max-w-2xl mx-auto overflow-hidden shadow-sm selection:bg-primary-100">
+    <BottomSheet isOpen={!!record} onClose={onClose} title={`Invoice ${record.id}`} className="sm:max-w-4xl">
+      <div className="print-area bg-white text-gray-900 border border-gray-200 rounded-xl max-w-4xl mx-auto overflow-hidden shadow-sm selection:bg-primary-100 font-sans w-full relative">
         
-        {/* Print Only Header (Hidden in UI normally, visible in print) */}
-        <div className="hidden print-only text-center py-6 border-b-2 border-gray-900 mb-6 px-8">
-           <h1 className="text-3xl font-extrabold tracking-tight">LUCKY BIKE CARE SERVICE</h1>
-           <p className="text-sm font-bold mt-2">Rakesh Choursiya</p>
-           <p className="text-sm font-medium mt-1 flex justify-center items-center gap-4 text-gray-600">
-            <span className="flex items-center gap-1"><Phone size={12}/> +91 9414377153</span>
-           </p>
-        </div>
-
         {/* UI Action Buttons (Hidden when printing) */}
         <div className="no-print flex flex-col items-end p-4 border-b border-gray-100 bg-gray-50/50">
           <button 
@@ -53,88 +44,158 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ record, onClose }) =
           )}
         </div>
 
-        <div className="p-6 md:p-8">
+        <div className="p-6 md:p-8 xl:p-12 w-full mx-auto relative z-10 min-h-full">
           
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <div>
-              <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2">Billed To</p>
-              <h3 className="font-bold text-lg">{record.customerName}</h3>
-              <p className="text-gray-600">{record.mobileNumber}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2">Invoice Details</p>
-              <p className="font-semibold text-gray-800">#{record.id}</p>
-              <p className="text-gray-600">Date: {format(new Date(record.dateOfService), 'dd MMM yyyy')}</p>
-            </div>
+          {/* Header Block */}
+          <div className="bg-[#2b88fb] text-white text-center py-6 rounded-xl mb-8">
+             <h1 className="text-3xl font-extrabold mb-3 tracking-wide">TAX INVOICE</h1>
+             <p className="text-sm border-t border-white/20 pt-3 inline-block px-4">Invoice #{record.id}</p>
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-4 mb-8 grid grid-cols-3 text-sm border border-gray-200">
-             <div>
-               <p className="text-gray-500 font-medium">Vehicle</p>
-               <p className="font-bold text-gray-900">{record.vehicleNumber}</p>
-             </div>
-             <div>
-               <p className="text-gray-500 font-medium">Model</p>
-               <p className="font-bold text-gray-900">{record.vehicleModel}</p>
-             </div>
-             <div className="text-right">
-               <p className="text-gray-500 font-medium">Kilometers</p>
-               <p className="font-bold text-gray-900">{record.kilometerReading} KM</p>
-             </div>
+          <div className="text-center mb-6 text-gray-800">
+            <h2 className="text-2xl font-bold text-[#2b88fb] mb-1 flex justify-center items-center gap-2">🏍️ Lucky Bike Care</h2>
+            <p className="text-[13px]">Professional Motorcycle Service & Repair Center</p>
+            <p className="text-[13px] flex justify-center items-center gap-1.5 mt-1">
+              <span className="text-rose-600 text-base">📍</span> Kota, Rajasthan <span className="text-gray-300 mx-1">|</span> <Phone size={13} className="text-gray-600"/> +91 9414977153
+            </p>
+            <p className="text-[13px] mt-1 text-gray-600">Owned by: Rakesh Choursiya</p>
           </div>
 
-          <table className="w-full text-left text-sm mb-8">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="py-3 font-bold text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="py-3 text-right font-bold text-gray-500 uppercase tracking-wider">Mtrl. Cost<br/><span className="text-[10px] lowercase font-normal">(Not Billed)</span></th>
-                <th className="py-3 text-right font-bold text-gray-500 uppercase tracking-wider">Labour</th>
-                <th className="py-3 text-right font-bold text-emerald-600 uppercase tracking-wider">Exch. Val</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {record.serviceDescription.length === 0 && (
-                 <tr>
-                   <td colSpan={4} className="py-4 text-center text-gray-500 italic">No specific parts recorded.</td>
-                 </tr>
-              )}
-              {record.serviceDescription.map(item => (
-                 <tr key={item.id}>
-                   <td className="py-3 font-medium text-gray-900">{item.partName}</td>
-                   <td className="py-3 text-right text-gray-500">{formatCurrency(item.partCost)}</td>
-                   <td className="py-3 text-right text-gray-800">{formatCurrency(item.labourCost)}</td>
-                   <td className="py-3 text-right text-emerald-600">{item.exchangeValue > 0 ? `-${formatCurrency(item.exchangeValue)}` : '-'}</td>
-                 </tr>
-              ))}
-            </tbody>
-          </table>
+          <hr className="border-gray-100 mb-6" />
 
-          <div className="border-t-2 border-gray-200 pt-6 flex flex-col items-end w-full space-y-2">
-             <div className="flex w-full max-w-xs justify-between text-gray-600 border-b border-gray-100 pb-2">
-               <span>General Labour:</span>
-               <span className="font-medium text-gray-900">{formatCurrency(record.labourCost)}</span>
-             </div>
-             <div className="flex w-full max-w-xs justify-between text-gray-900 font-bold text-lg pt-2">
-               <span>Final Bill:</span>
-               <span>{formatCurrency(record.totalCost)}</span>
+          {/* Customer & Invoice Details */}
+          <div className="flex justify-between items-start mb-8 text-[13px] leading-relaxed">
+             <div>
+               <h3 className="text-[#2b88fb] font-bold uppercase tracking-widest text-[11px] mb-3">BILL TO</h3>
+               <p className="font-bold text-gray-900 uppercase text-sm mb-1.5">{record.customerName}</p>
+               <p className="flex items-center gap-2 mb-1">📱 {record.mobileNumber}</p>
+               <p className="flex items-center gap-2 mb-1">🏍️ {record.vehicleModel} ({record.vehicleNumber})</p>
+               <p className="flex items-center gap-2 text-gray-500">🔢 Service Counter: {record.serviceCounter || 'LBC'}</p>
              </div>
              
-             <div className="w-full max-w-xs mt-4 pt-4 border-t border-gray-200">
-               <div className="flex justify-between text-sm text-gray-600 mb-1">
-                 <span>Paid (Cash + Online):</span>
-                 <span>{formatCurrency(record.cashPaid + record.onlinePaid)}</span>
-               </div>
-               <div className="flex justify-between font-bold text-rose-600">
-                 <span>Due Balance:</span>
-                 <span>{formatCurrency(record.dueAmount)}</span>
+             <div className="text-right">
+               <h3 className="text-[#2b88fb] font-bold uppercase tracking-widest text-[11px] mb-3">INVOICE DETAILS</h3>
+               <div className="grid grid-cols-[auto_auto] gap-x-2 gap-y-1.5 justify-end text-right">
+                 <span className="font-bold text-gray-900">Date:</span>
+                 <span className="text-gray-700">{format(new Date(record.dateOfService), 'dd MMMM yyyy')}</span>
+                 
+                 <span className="font-bold text-gray-900">Generated:</span>
+                 <span className="text-gray-700">{format(new Date(), 'dd MMMM yyyy')}</span>
+                 
+                 <span className="font-bold text-gray-900">KM Reading:</span>
+                 <span className="text-gray-700">{record.kilometerReading} km</span>
+                 
+                 <span className="font-bold text-gray-900">Next Service:</span>
+                 <span className="text-gray-700">{format(new Date(record.nextServiceDate), 'dd MMMM yyyy')}</span>
                </div>
              </div>
           </div>
-          
-          <div className="mt-12 text-center text-xs text-gray-400 no-print">
-            Next Service Due: {format(new Date(record.nextServiceDate), 'MMMM dd, yyyy')}
+
+          {/* Service Details Table */}
+          <div className="mb-6 z-10 relative">
+             <h3 className="font-bold text-gray-900 text-sm mb-0 bg-[#f4fbff] py-3 px-4 rounded-t-xl border-x border-t border-[#e2f1fc] items-center gap-2 flex">
+               📋 Service Details
+             </h3>
+             <table className="w-full text-sm">
+                <thead>
+                   <tr className="bg-[#2b88fb] text-white">
+                     <th className="py-2.5 px-3 text-left font-bold text-[11px] tracking-wider uppercase border-r border-white/20 whitespace-pre">#</th>
+                     <th className="py-2.5 px-3 text-left font-bold text-[11px] tracking-wider uppercase">ITEM DESCRIPTION</th>
+                     <th className="py-2.5 px-3 text-right font-bold text-[11px] tracking-wider uppercase">PART COST</th>
+                     <th className="py-2.5 px-3 text-right font-bold text-[11px] tracking-wider uppercase">LABOUR</th>
+                     <th className="py-2.5 px-3 text-right font-bold text-[11px] tracking-wider uppercase">EXCHANGE</th>
+                     <th className="py-2.5 px-3 text-right font-bold text-[11px] tracking-wider uppercase">TOTAL</th>
+                   </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-[13px] border-b border-gray-100">
+                  {record.serviceDescription.length === 0 ? (
+                     <tr><td colSpan={6} className="py-4 text-center italic text-gray-400">No parts billed.</td></tr>
+                  ) : (
+                     record.serviceDescription.map((item, i) => (
+                       <tr key={item.id} className="hover:bg-gray-50/50">
+                         <td className="py-2.5 px-3 text-gray-500">{i + 1}</td>
+                         <td className="py-2.5 px-3 font-medium text-gray-900 uppercase">{item.partName}</td>
+                         <td className="py-2.5 px-3 text-right text-gray-700">{formatCurrency(item.partCost)}</td>
+                         <td className="py-2.5 px-3 text-right text-gray-700">{formatCurrency(item.labourCost)}</td>
+                         <td className="py-2.5 px-3 text-right text-rose-600">{item.exchangeValue > 0 ? `-${formatCurrency(item.exchangeValue)}` : '-'}</td>
+                         <td className="py-2.5 px-3 text-right font-bold text-gray-900">{formatCurrency((item.partCost + item.labourCost) - item.exchangeValue)}</td>
+                       </tr>
+                     ))
+                  )}
+                  {/* General Labour Row */}
+                  <tr className="font-semibold text-gray-900 bg-gray-50/30 print:bg-gray-100">
+                    <td className="py-3 px-3"></td>
+                    <td className="py-3 px-3">General Service Labour</td>
+                    <td className="py-3 px-3 text-right text-gray-500 font-normal">-</td>
+                    <td className="py-3 px-3 text-right">{formatCurrency(record.labourCost)}</td>
+                    <td className="py-3 px-3 text-right text-gray-500 font-normal">-</td>
+                    <td className="py-3 px-3 text-right font-bold">{formatCurrency(record.labourCost)}</td>
+                  </tr>
+                </tbody>
+             </table>
+          </div>
+
+          {/* Payment Summary */}
+          <div className="z-10 relative bg-white">
+             <h3 className="font-bold text-gray-900 text-sm mb-0 bg-[#f4fbff] py-3 px-4 rounded-t-xl border-x border-t border-[#e2f1fc] items-center gap-2 flex">
+               💰 Payment Summary
+             </h3>
+             <div className="border border-gray-100 rounded-b-xl px-4 py-4 space-y-3 text-[13px] text-gray-700">
+                <div className="flex justify-between items-center">
+                  <span>Parts Subtotal</span>
+                  <span>{formatCurrency(record.serviceDescription.reduce((acc, curr) => acc + curr.partCost, 0))}</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-600">
+                  <span>Labour Subtotal (including parts installation)</span>
+                  <span>{formatCurrency(record.serviceDescription.reduce((acc, curr) => acc + curr.labourCost, 0))}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>General Service Labour</span>
+                  <span>{formatCurrency(record.labourCost)}</span>
+                </div>
+                
+                <div className="flex justify-between font-bold text-sm text-gray-900 border-y border-gray-200 py-3 my-3">
+                  <span className="uppercase">SERVICE BILL TOTAL</span>
+                  <span>{formatCurrency(record.totalCost)}</span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span>Cash Paid</span>
+                  <span>{formatCurrency(record.cashPaid)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Online Paid</span>
+                  <span>{formatCurrency(record.onlinePaid)}</span>
+                </div>
+                
+                <div className="flex justify-between items-center pt-2 pb-2 bg-[#f4fbff] -mx-4 px-4 mt-2 border-t border-[#e2f1fc]">
+                  <span className="font-bold text-gray-900 uppercase">BALANCE DUE</span>
+                  <div className="text-right flex items-center justify-end gap-3 flex-row-reverse">
+                    <span className={`font-bold text-lg leading-none ${record.dueAmount > 0 ? "text-rose-600" : "text-emerald-600"}`}>{formatCurrency(record.dueAmount)}</span>
+                    {record.dueAmount === 0 && (
+                      <span className="inline-flex bg-[#d1fae5] text-[#065f46] text-[10px] items-center font-bold px-1.5 py-0.5 rounded gap-1 leading-none h-fit">✅ PAID</span>
+                    )}
+                  </div>
+                </div>
+             </div>
+          </div>
+
+          <div className="mt-8 text-center text-[11px] text-gray-500 bg-[#f8fbfe] py-6 px-4 rounded-xl border border-[#eef5fa] print-only md:block hidden relative z-10">
+            <p className="font-bold text-gray-700 mb-1 leading-relaxed">Next Service Due: {format(new Date(record.nextServiceDate), 'dd MMMM yyyy')}</p>
+            <p className="mb-2 leading-relaxed">Thank you for choosing Lucky Bike Care! 🏍️</p>
+            <p className="mb-1 leading-relaxed">For any queries, please contact: +91 9414977153 | Rakesh Choursiya</p>
+            <p className="text-gray-400 mt-2">&copy; {new Date().getFullYear()} Lucky Bike Care. All Rights Reserved.</p>
           </div>
           
+          <div className="md:hidden block text-center mt-6 z-10 relative">
+             <p className="font-bold text-gray-700 text-[11px] mb-1 leading-relaxed">Next Service Due: {format(new Date(record.nextServiceDate), 'dd MMMM yyyy')}</p>
+          </div>
+
+          {/* Watermark Logo */}
+          <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.02] pointer-events-none overflow-hidden pb-32">
+             <h1 className="text-[12rem] xl:text-[20rem] font-black rotate-[-30deg] tracking-widest text-[#2b88fb] leading-[0.8] block mx-auto whitespace-nowrap text-center">LUCKY<br/>BIKE<br/>CARE</h1>
+          </div>
+
         </div>
       </div>
     </BottomSheet>

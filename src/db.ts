@@ -153,6 +153,8 @@ export class DB {
       return nextDate >= now && nextDate <= thirtyDaysFromNow;
     });
 
+    const recentRecords = records.slice(0, 5);
+
     return {
       totalCustomers: uniqueCustomers,
       totalServices: records.length,
@@ -160,7 +162,8 @@ export class DB {
       pendingDuesTotal: pendingDues,
       upcomingRemindersCount: upcomingReminders.length,
       pendingDueRecords: records.filter(r => r.dueAmount > 0),
-      upcomingReminderRecords: upcomingReminders
+      upcomingReminderRecords: upcomingReminders,
+      recentRecords
     };
   }
 }
