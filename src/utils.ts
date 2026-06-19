@@ -66,6 +66,18 @@ export const calculateServiceBill = (
   };
 };
 
+export const parseServiceDescription = (desc: any): any[] => {
+  if (typeof desc === 'string') {
+    try {
+      return JSON.parse(desc);
+    } catch {
+      return [];
+    }
+  }
+  if (Array.isArray(desc)) return desc;
+  return [];
+};
+
 export const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',

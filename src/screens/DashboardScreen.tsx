@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { DB } from '../db';
-import { Users, FileText, IndianRupee, AlertCircle, BellRing, Settings, Loader2 } from 'lucide-react';
+import { Users, FileText, IndianRupee, AlertCircle, BellRing, Settings, Loader2, Edit2, Printer, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { format } from 'date-fns';
+import { ServiceRecord } from '../types';
 
-export const DashboardScreen: React.FC = () => {
+interface DashboardScreenProps {
+  onViewRecord?: (r: ServiceRecord) => void;
+  onEditRecord?: (r: ServiceRecord) => void;
+  onDeleteRecord?: (r: ServiceRecord) => void;
+}
+
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord }) => {
   const [stats, setStats] = useState<ReturnType<typeof DB.getDashboardStats> | null>(null);
 
   useEffect(() => {
@@ -164,13 +171,14 @@ export const DashboardScreen: React.FC = () => {
                 <th className="px-4 py-3 font-medium">Customer</th>
                 <th className="px-4 py-3 font-medium">Vehicle</th>
                 <th className="px-4 py-3 font-medium">Amount</th>
-                <th className="px-4 py-3 font-medium rounded-tr-lg rounded-br-lg text-right">Status</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium rounded-tr-lg rounded-br-lg text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {stats.recentRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-6 text-gray-500">No recent services.</td>
+                  <td colSpan={6} className="text-center py-6 text-gray-500">No recent services.</td>
                 </tr>
               ) : (
                 stats.recentRecords.map(record => (
@@ -179,10 +187,23 @@ export const DashboardScreen: React.FC = () => {
                     <td className="px-4 py-3 font-medium text-gray-900">{record.customerName}</td>
                     <td className="px-4 py-3 text-gray-600">{record.vehicleNumber}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">{formatCurrency(record.totalCost)}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3">
                       <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${record.dueAmount === 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                         {record.dueAmount === 0 ? 'Paid' : 'Due'}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => onViewRecord && onViewRecord(record)} className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition" title="Print/View Invoice">
+                          <Printer size={16} />
+                        </button>
+                        <button onClick={() => onEditRecord && onEditRecord(record)} className="p-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="Edit Record">
+                          <Edit2 size={16} />
+                        </button>
+                        <button onClick={() => onDeleteRecord && onDeleteRecord(record)} className="p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete Record">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DB } from '../db';
 import { ServiceRecord } from '../types';
-import { Search, Clock, FileText, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Clock, FileText, CheckCircle2, ChevronDown, ChevronUp, Phone } from 'lucide-react';
 import { format } from 'date-fns';
-import { formatCurrency } from '../utils';
+import { formatCurrency, parseServiceDescription } from '../utils';
 
-export const HistoryScreen: React.FC = () => {
-  const [vehicleNumber, setVehicleNumber] = useState('');
+export const HistoryScreen: React.FC<{ initialVehicleNumber?: string, onViewRecord?: (record: ServiceRecord) => void }> = ({ initialVehicleNumber, onViewRecord }) => {
+  const [vehicleNumber, setVehicleNumber] = useState(initialVehicleNumber || '');
   const [history, setHistory] = useState<ServiceRecord[] | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vehicleNumber.trim()) return;
+  useEffect(() => {
+    if (initialVehicleNumber) {
+      setVehicleNumber(initialVehicleNumber);
+      handleSearchDirect(initialVehicleNumber);
+    }
+  }, [initialVehicleNumber]);
+
+  const handleSearchDirect = async (vNumber: string) => {
+    if (!vNumber.trim()) return;
     try {
-      const records = await DB.getHistoryByVehicle(vehicleNumber);
+      const records = await DB.getHistoryByVehicle(vNumber);
       setHistory(records);
       if(records.length > 0) {
         setExpandedId(records[0].id); // Expand most recent by default
@@ -22,6 +28,11 @@ export const HistoryScreen: React.FC = () => {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearchDirect(vehicleNumber);
   };
 
   return (
@@ -62,6 +73,33 @@ export const HistoryScreen: React.FC = () => {
         )}
 
         {history && history.length > 0 && (
+          <div className="mb-8 p-6 glass-card border flex flex-col gap-4 rounded-2xl bg-white shadow-sm border-gray-100">
+            <div>
+              <p className="text-xs font-bold text-primary-500 uppercase tracking-widest mb-1">Vehicle Match</p>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900">{history[0].vehicleNumber}</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Customer Name</p>
+                <p className="font-semibold text-gray-900">{history[0].customerName}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Mobile Number</p>
+                <p className="font-semibold text-gray-900 flex items-center gap-1"><Phone size={12} className="text-gray-400" /> {history[0].mobileNumber}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Vehicle Model</p>
+                <p className="font-semibold text-gray-900">{history[0].vehicleModel}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Total Visits</p>
+                <p className="font-semibold text-primary-600 bg-primary-50 inline-flex px-2 py-0.5 rounded text-xs">{history.length} services</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {history && history.length > 0 && (
           <div className="relative border-l-2 border-gray-200 ml-4 md:ml-6 space-y-6">
             {history.map((record, index) => {
               const isExpanded = expandedId === record.id;
@@ -80,7 +118,7 @@ export const HistoryScreen: React.FC = () => {
                       <div>
                         <div className="flex items-center space-x-2">
                            <span className="text-sm font-bold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-md">Service #{record.serviceCounter}</span>
-                           <span className="text-xs font-semibold text-gray-500">{format(new Date(record.dateOfService), 'MMMM dd, yyyy')}</span>
+                           <span className="text-xs font-semibold text-gray-500">{record.dateOfService ? format(new Date(record.dateOfService), 'MMMM dd, yyyy') : 'N/A'}</span>
                         </div>
                         <h3 className="text-gray-900 font-semibold mt-1 flex items-center gap-2">
                            {record.vehicleModel} 
@@ -108,11 +146,11 @@ export const HistoryScreen: React.FC = () => {
                          {/* Services List */}
                          <div className="mb-4">
                             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Service Details</h4>
-                            {record.serviceDescription.length === 0 ? (
+                            {parseServiceDescription(record.serviceDescription).length === 0 ? (
                                <p className="text-sm text-gray-500 italic">No specific parts listed.</p>
                             ) : (
                               <ul className="space-y-2">
-                                {record.serviceDescription.map(item => (
+                                {parseServiceDescription(record.serviceDescription).map((item: any) => (
                                   <li key={item.id} className="text-sm flex flex-wrap justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100">
                                     <span className="font-medium text-gray-800">{item.partName}</span>
                                     <div className="text-xs text-gray-500 flex gap-3 text-right">
@@ -147,6 +185,12 @@ export const HistoryScreen: React.FC = () => {
                                   {formatCurrency(record.dueAmount)}
                                </p>
                             </div>
+                         </div>
+
+                         <div className="mt-4 flex justify-end">
+                           <button onClick={(e) => { e.stopPropagation(); if(onViewRecord) onViewRecord(record); }} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition shadow-sm border border-primary-100">
+                             <FileText size={16} /> View/Print Bill
+                           </button>
                          </div>
                       </div>
                     )}

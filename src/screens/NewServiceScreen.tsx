@@ -1,16 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { DB } from '../db';
 import { ServiceRecord, ServiceItem } from '../types';
-import { calculateServiceBill } from '../utils';
+import { calculateServiceBill, parseServiceDescription } from '../utils';
 import { Save, Plus, Trash2, Calendar, FileText, CheckCircle, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { BottomSheet } from '../components/BottomSheet';
 
+const VEHICLE_MODELS = [
+  "Hero Splendor Plus",
+  "Hero HF Deluxe",
+  "Hero Passion Pro",
+  "Hero Super Splendor",
+  "Hero Glamour",
+  "Hero Xtreme 160R",
+  "Hero Xpulse 200",
+  "Hero Destini 125",
+  "Hero Maestro Edge",
+  "Hero Pleasure Plus",
+  "Honda Activa 6G",
+  "Honda Activa 125",
+  "Honda Shine",
+  "Honda SP 125",
+  "Honda Dio",
+  "Honda Unicorn",
+  "Honda Livo",
+  "Honda Hornet 2.0",
+  "Bajaj Pulsar 150",
+  "Bajaj Pulsar 125",
+  "Bajaj Pulsar NS200",
+  "Bajaj Platina 100",
+  "Bajaj CT 100",
+  "Bajaj Avenger Cruise 220",
+  "Bajaj Dominar 400",
+  "TVS Jupiter",
+  "TVS Apache RTR 160",
+  "TVS Apache RTR 160 4V",
+  "TVS NTORQ 125",
+  "TVS XL100",
+  "TVS Radeon",
+  "TVS Sport",
+  "TVS Star City Plus",
+  "Royal Enfield Classic 350",
+  "Royal Enfield Bullet 350",
+  "Royal Enfield Hunter 350",
+  "Royal Enfield Meteor 350",
+  "Royal Enfield Himalayan",
+  "Royal Enfield Interceptor 650",
+  "Yamaha FZ-FI",
+  "Yamaha FZS-FI",
+  "Yamaha R15 V4",
+  "Yamaha MT-15",
+  "Yamaha RayZR 125",
+  "Yamaha Fascino 125",
+  "Suzuki Access 125",
+  "Suzuki Burgman Street",
+  "Suzuki Avenis",
+  "Suzuki Gixxer",
+  "Suzuki Gixxer SF",
+  "KTM Duke 200",
+  "KTM Duke 390",
+  "KTM RC 200",
+  "KTM RC 390",
+  "Ather 450X",
+  "Ola S1 Pro"
+];
+
 interface NewServiceScreenProps {
   onSuccess?: () => void;
+  editingRecord?: ServiceRecord | null;
+  onViewInvoice?: (record: ServiceRecord) => void;
 }
 
-export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess }) => {
+export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess, editingRecord, onViewInvoice }) => {
   const [record, setRecord] = useState({
     vehicleNumber: '',
     customerName: '',
@@ -25,6 +86,25 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess })
 
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([]);
   const [createdInvoice, setCreatedInvoice] = useState<ServiceRecord | null>(null);
+
+  useEffect(() => {
+    if (editingRecord) {
+      setRecord({
+        vehicleNumber: editingRecord.vehicleNumber,
+        customerName: editingRecord.customerName,
+        mobileNumber: editingRecord.mobileNumber,
+        vehicleModel: editingRecord.vehicleModel,
+        dateOfService: format(new Date(editingRecord.dateOfService), 'yyyy-MM-dd'),
+        kilometerReading: editingRecord.kilometerReading.toString(),
+        labourCost: editingRecord.labourCost.toString(),
+        cashPaid: editingRecord.cashPaid.toString(),
+        onlinePaid: editingRecord.onlinePaid.toString()
+      });
+      setServiceItems(parseServiceDescription(editingRecord.serviceDescription));
+    } else {
+      resetForm();
+    }
+  }, [editingRecord]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -80,7 +160,12 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess })
     };
 
     try {
-      const saved = await DB.addRecord(newRecord);
+      let saved;
+      if (editingRecord) {
+        saved = await DB.updateRecord(editingRecord.id, newRecord);
+      } else {
+        saved = await DB.addRecord(newRecord);
+      }
       setCreatedInvoice(saved);
     } catch (e: any) {
       console.error(e);
@@ -102,7 +187,6 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess })
     });
     setServiceItems([]);
     setCreatedInvoice(null);
-    if(onSuccess) onSuccess();
   };
 
   // Safe totals for display
@@ -118,8 +202,12 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess })
   return (
     <div className="flex-1 p-4 md:p-8 overflow-y-auto pb-24 md:pb-8">
       <div className="mb-6 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 leading-tight">New Service Record</h1>
-        <p className="text-sm text-gray-500 mt-1">Create a new customer service order</p>
+        <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+          {editingRecord ? 'Edit Service Record' : 'New Service Record'}
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {editingRecord ? `Editing invoice #${editingRecord.id}` : 'Create a new customer service order'}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6">
@@ -128,7 +216,7 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess })
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4 border-b pb-2">Customer & Vehicle Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputGroup label="Vehicle Number" name="vehicleNumber" value={record.vehicleNumber} onChange={handleTextChange} required placeholder="e.g. MH 12 AB 1234" />
-            <InputGroup label="Vehicle Model" name="vehicleModel" value={record.vehicleModel} onChange={handleTextChange} required placeholder="e.g. Honda Activa 6G" />
+            <InputGroup label="Vehicle Model" name="vehicleModel" value={record.vehicleModel} onChange={handleTextChange} required placeholder="e.g. Honda Activa 6G" datalistOptions={VEHICLE_MODELS} />
             <InputGroup label="Customer Name" name="customerName" value={record.customerName} onChange={handleTextChange} required />
             <InputGroup label="Mobile Number" name="mobileNumber" value={record.mobileNumber} onChange={handleTextChange} type="tel" required />
             <InputGroup label="Date of Service" name="dateOfService" value={record.dateOfService} onChange={handleTextChange} type="date" required />
@@ -228,24 +316,31 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess })
 
         <button type="submit" className="w-full flex justify-center items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold py-4 rounded-xl shadow-lg transition active:scale-95">
           <Save size={20} />
-          <span>Save Service Record</span>
+          <span>{editingRecord ? 'Update Service Record' : 'Save Service Record'}</span>
         </button>
       </form>
 
       {/* Success Bottom Sheet */}
-      <BottomSheet isOpen={!!createdInvoice} onClose={resetForm} title="Record Saved">
+      <BottomSheet isOpen={!!createdInvoice} onClose={() => { setCreatedInvoice(null); if(onSuccess) onSuccess(); }} title={editingRecord ? "Record Updated" : "Record Saved"}>
         <div className="flex flex-col items-center justify-center py-6">
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex justify-center items-center mb-4">
             <CheckCircle className="text-emerald-500" size={32} />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-1">Service Logged Successfully!</h2>
-          <p className="text-gray-500 mb-6">Invoice {createdInvoice?.id} generated.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-1">{editingRecord ? 'Service Updated Successfully!' : 'Service Logged Successfully!'}</h2>
+          <p className="text-gray-500 mb-6">Invoice {createdInvoice?.id} {editingRecord ? 'updated' : 'generated'}.</p>
           
           <div className="w-full flex gap-3">
-            <button onClick={resetForm} className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition">
-              Create Another
-            </button>
-            <button className="flex-1 flex justify-center items-center space-x-2 px-4 py-3 bg-primary-600 text-white font-medium rounded-xl shadow-sm hover:bg-primary-700 transition">
+            {!editingRecord && (
+              <button onClick={resetForm} className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition">
+                Create Another
+              </button>
+            )}
+            {editingRecord && (
+              <button onClick={() => { setCreatedInvoice(null); if(onSuccess) onSuccess(); }} className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition">
+                Back to Search
+              </button>
+            )}
+            <button onClick={() => { if(createdInvoice && onViewInvoice) onViewInvoice(createdInvoice); }} className="flex-1 flex justify-center items-center space-x-2 px-4 py-3 bg-primary-600 text-white font-medium rounded-xl shadow-sm hover:bg-primary-700 transition">
               <Receipt size={18} />
               <span>View Invoice</span>
             </button>
@@ -256,14 +351,25 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess })
   );
 };
 
-const InputGroup = ({ label, required = false, ...props }: any) => (
-  <div>
-    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-      {label} {required && <span className="text-rose-500">*</span>}
-    </label>
-    <input 
-      {...props}
-      className={`w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm transition bg-gray-50 shadow-sm ${props.className || ''}`}
-    />
-  </div>
-);
+const InputGroup = ({ label, required = false, datalistOptions, ...props }: any) => {
+  const listId = datalistOptions ? `${props.name}-datalist` : undefined;
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+        {label} {required && <span className="text-rose-500">*</span>}
+      </label>
+      <input 
+        {...props}
+        list={listId}
+        className={`w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm transition bg-gray-50 shadow-sm ${props.className || ''}`}
+      />
+      {datalistOptions && (
+        <datalist id={listId}>
+          {datalistOptions.map((option: string) => (
+            <option key={option} value={option} />
+          ))}
+        </datalist>
+      )}
+    </div>
+  );
+};

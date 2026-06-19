@@ -8,26 +8,61 @@ import { HistoryScreen } from './screens/HistoryScreen';
 import { ReportsScreen } from './screens/ReportsScreen';
 import { InvoiceModal } from './components/InvoiceModal';
 import { Menu } from 'lucide-react';
+import { DB } from './db';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<Screen>('dashboard');
   const [viewRecord, setViewRecord] = useState<ServiceRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<ServiceRecord | null>(null);
+  const [historyVehicleQuery, setHistoryVehicleQuery] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleEdit = (record: ServiceRecord) => {
+    setEditingRecord(record);
+    setCurrentTab('new-service');
+  };
+
+  const handleViewHistory = (vehicleNumber: string) => {
+    setHistoryVehicleQuery(vehicleNumber);
+    setCurrentTab('history');
+  };
+
+  const handleDelete = async (record: ServiceRecord) => {
+    if (window.confirm(`Are you sure you want to delete invoice ${record.id}?`)) {
+      try {
+        await DB.deleteRecord(record.id);
+        alert('Record deleted successfully.');
+        // Hack to refresh current view if needed
+        const prev = currentTab;
+        setCurrentTab('reports'); // force re-render
+        setTimeout(() => setCurrentTab(prev), 10);
+      } catch(e) {
+        alert('Failed to delete record.');
+      }
+    }
+  };
 
   const renderScreen = () => {
     switch (currentTab) {
       case 'dashboard':
-        return <DashboardScreen />;
+        return <DashboardScreen onViewRecord={setViewRecord} onEditRecord={handleEdit} onDeleteRecord={handleDelete} />;
       case 'new-service':
-        return <NewServiceScreen onSuccess={() => setCurrentTab('search')} />;
+        return <NewServiceScreen 
+                 editingRecord={editingRecord} 
+                 onSuccess={() => {
+                   setEditingRecord(null);
+                   setCurrentTab('search');
+                 }} 
+                 onViewInvoice={(r) => setViewRecord(r)}
+               />;
       case 'search':
-        return <SearchScreen onViewRecord={setViewRecord} />;
+        return <SearchScreen onViewRecord={setViewRecord} onEditRecord={handleEdit} onDeleteRecord={handleDelete} onViewHistory={handleViewHistory}/>;
       case 'history':
-        return <HistoryScreen />;
+        return <HistoryScreen initialVehicleNumber={historyVehicleQuery} onViewRecord={setViewRecord} />;
       case 'reports':
         return <ReportsScreen />;
       default:
-        return <DashboardScreen />;
+        return <DashboardScreen onViewRecord={setViewRecord} onEditRecord={handleEdit} onDeleteRecord={handleDelete} />;
     }
   };
 
@@ -35,7 +70,10 @@ export default function App() {
     <div className="mobile-container relative bg-gray-50">
       <Sidebar 
         currentTab={currentTab} 
-        setCurrentTab={setCurrentTab} 
+        setCurrentTab={(tab) => {
+          if(tab !== 'new-service') setEditingRecord(null);
+          setCurrentTab(tab);
+        }} 
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
       />
