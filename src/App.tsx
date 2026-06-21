@@ -14,11 +14,19 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<Screen>('dashboard');
   const [viewRecord, setViewRecord] = useState<ServiceRecord | null>(null);
   const [editingRecord, setEditingRecord] = useState<ServiceRecord | null>(null);
+  const [isReentry, setIsReentry] = useState<boolean>(false);
   const [historyVehicleQuery, setHistoryVehicleQuery] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleEdit = (record: ServiceRecord) => {
     setEditingRecord(record);
+    setIsReentry(false);
+    setCurrentTab('new-service');
+  };
+
+  const handleReentry = (record: ServiceRecord) => {
+    setEditingRecord(record);
+    setIsReentry(true);
     setCurrentTab('new-service');
   };
 
@@ -49,14 +57,22 @@ export default function App() {
       case 'new-service':
         return <NewServiceScreen 
                  editingRecord={editingRecord} 
+                 isReentry={isReentry}
                  onSuccess={() => {
                    setEditingRecord(null);
+                   setIsReentry(false);
                    setCurrentTab('search');
                  }} 
                  onViewInvoice={(r) => setViewRecord(r)}
                />;
       case 'search':
-        return <SearchScreen onViewRecord={setViewRecord} onEditRecord={handleEdit} onDeleteRecord={handleDelete} onViewHistory={handleViewHistory}/>;
+        return <SearchScreen 
+                 onViewRecord={setViewRecord} 
+                 onEditRecord={handleEdit} 
+                 onDeleteRecord={handleDelete} 
+                 onViewHistory={handleViewHistory}
+                 onReentry={handleReentry}
+               />;
       case 'history':
         return <HistoryScreen initialVehicleNumber={historyVehicleQuery} onViewRecord={setViewRecord} />;
       case 'reports':
@@ -71,7 +87,10 @@ export default function App() {
       <Sidebar 
         currentTab={currentTab} 
         setCurrentTab={(tab) => {
-          if(tab !== 'new-service') setEditingRecord(null);
+          if(tab !== 'new-service') {
+            setEditingRecord(null);
+            setIsReentry(false);
+          }
           setCurrentTab(tab);
         }} 
         isOpen={isMobileMenuOpen}

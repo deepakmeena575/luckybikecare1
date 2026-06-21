@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronRight, Calculator, IndianRupee, Printer, Edit2, Trash2, History } from 'lucide-react';
+import { Search, ChevronRight, Calculator, IndianRupee, Printer, Edit2, Trash2, History, RefreshCcw } from 'lucide-react';
 import { DB } from '../db';
 import { ServiceRecord } from '../types';
-import { formatCurrency } from '../utils';
+import { formatCurrency, parseServiceDescription } from '../utils';
 import { format } from 'date-fns';
 
 interface SearchScreenProps {
@@ -10,9 +10,10 @@ interface SearchScreenProps {
   onEditRecord?: (record: ServiceRecord) => void;
   onDeleteRecord?: (record: ServiceRecord) => void;
   onViewHistory?: (vehicleNumber: string) => void;
+  onReentry?: (record: ServiceRecord) => void;
 }
 
-export const SearchScreen: React.FC<SearchScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord, onViewHistory }) => {
+export const SearchScreen: React.FC<SearchScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord, onViewHistory, onReentry }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ServiceRecord[]>([]);
 
@@ -70,58 +71,98 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onViewRecord, onEdit
           </div>
         )}
 
-        {results.map((record) => (
-          <div 
-            key={record.id} 
-            className="glass-card p-4 group"
-          >
-            <div className="flex justify-between items-start mb-2">
-               <div>
-                  <h3 className="font-bold text-gray-900">{record.vehicleNumber}</h3>
-                  <p className="text-sm text-gray-600">{record.customerName} • {record.mobileNumber}</p>
-               </div>
-               <div className="text-right flex flex-col items-end gap-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                    Service #{record.serviceCounter}
-                  </span>
-               </div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-4 items-center justify-between">
-               <div className="flex space-x-4">
+        {results.map((record) => {
+          const parsedParts = parseServiceDescription(record.serviceDescription);
+          return (
+            <div 
+              key={record.id} 
+              className="glass-card p-4 group"
+            >
+              <div className="flex justify-between items-start mb-2">
                  <div>
-                    <p className="text-[10px] text-gray-500 font-medium uppercase">Date</p>
-                    <p className="text-sm text-gray-900 font-medium">{format(new Date(record.dateOfService), 'dd MMM yyyy')}</p>
+                    <h3 className="font-bold text-gray-900">{record.vehicleNumber}</h3>
+                    <p className="text-sm text-gray-600">{record.customerName} • {record.mobileNumber}</p>
                  </div>
-                 <div>
-                    <p className="text-[10px] text-gray-500 font-medium uppercase">Bill Amount</p>
-                    <p className="text-sm text-gray-900 font-bold">{formatCurrency(record.totalCost)}</p>
+                 <div className="text-right flex flex-col items-end gap-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                      Service #{record.serviceCounter}
+                    </span>
                  </div>
-                 {record.dueAmount > 0 && (
-                   <div>
-                      <p className="text-[10px] text-rose-500 font-medium uppercase">Due Amount</p>
-                      <p className="text-sm text-rose-600 font-bold">{formatCurrency(record.dueAmount)}</p>
-                   </div>
-                 )}
-               </div>
-            </div>
+              </div>
+              
+              {/* Parts Details Breakdown Section */}
+              <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs">
+                <div className="font-bold text-gray-500 uppercase tracking-wide text-[10px] mb-2 flex justify-between">
+                  <span>Parts & Work Details ({parsedParts.length})</span>
+                  <span>Model: <span className="text-gray-700 normal-case">{record.vehicleModel || "N/A"}</span></span>
+                </div>
+                {parsedParts.length === 0 ? (
+                  <p className="text-gray-400 italic">No specific parts recorded for this service.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                    {parsedParts.map((item: any) => (
+                      <div key={item.id} className="flex justify-between items-center text-gray-700 bg-white p-1.5 rounded border border-gray-50 shadow-sm">
+                        <span className="font-semibold text-gray-800 uppercase">{item.partName || "Part name not entered"}</span>
+                        <div className="text-right text-[11px] text-gray-500 flex gap-2">
+                          {item.partCost > 0 && <span>Part: <strong className="text-gray-700">{formatCurrency(item.partCost)}</strong></span>}
+                          {item.labourCost > 0 && <span>Lab: <strong className="text-gray-700">{formatCurrency(item.labourCost)}</strong></span>}
+                          {item.exchangeValue > 0 && <span className="text-rose-600 font-medium">Exch: -{formatCurrency(item.exchangeValue)}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {record.labourCost > 0 && (
+                  <div className="mt-2 pt-2 border-t border-dashed border-gray-200 flex justify-between text-gray-700">
+                    <span className="font-medium text-gray-500">General Labour Charge</span>
+                    <span className="font-bold text-gray-800">{formatCurrency(record.labourCost)}</span>
+                  </div>
+                )}
+              </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2 items-center justify-end">
-               <button onClick={() => onViewHistory && onViewHistory(record.vehicleNumber)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-                 <History size={16} /> View History
-               </button>
-               <button onClick={() => onViewRecord && onViewRecord(record)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition">
-                 <Printer size={16} /> Bill
-               </button>
-               <button onClick={() => onEditRecord && onEditRecord(record)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition">
-                 <Edit2 size={16} /> Edit
-               </button>
-               <button onClick={() => onDeleteRecord && onDeleteRecord(record)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-rose-600 bg-rose-50 rounded-lg hover:bg-rose-100 transition">
-                 <Trash2 size={16} /> Delete
-               </button>
+              <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-4 items-center justify-between">
+                 <div className="flex space-x-4">
+                   <div>
+                      <p className="text-[10px] text-gray-500 font-medium uppercase">Date</p>
+                      <p className="text-sm text-gray-900 font-medium">{format(new Date(record.dateOfService), 'dd MMM yyyy')}</p>
+                   </div>
+                   <div>
+                      <p className="text-[10px] text-gray-500 font-medium uppercase">Bill Amount</p>
+                      <p className="text-sm text-gray-900 font-bold">{formatCurrency(record.totalCost)}</p>
+                   </div>
+                   {record.dueAmount > 0 && (
+                     <div>
+                        <p className="text-[10px] text-rose-500 font-medium uppercase">Due Amount</p>
+                        <p className="text-sm text-rose-600 font-bold">{formatCurrency(record.dueAmount)}</p>
+                     </div>
+                   )}
+                 </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2 items-center justify-end">
+                 <button onClick={() => onViewHistory && onViewHistory(record.vehicleNumber)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                   <History size={16} /> View History
+                 </button>
+                 <button onClick={() => onViewRecord && onViewRecord(record)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition">
+                   <Printer size={16} /> Bill
+                 </button>
+                 <button 
+                   onClick={() => onReentry && onReentry(record)} 
+                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition shadow-sm border border-emerald-100"
+                   title="Pre-fill vehicle/customer info to do repeat service"
+                 >
+                   <RefreshCcw size={16} /> Re-entry (Repeat)
+                 </button>
+                 <button onClick={() => onEditRecord && onEditRecord(record)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition">
+                   <Edit2 size={16} /> Edit
+                 </button>
+                 <button onClick={() => onDeleteRecord && onDeleteRecord(record)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-rose-600 bg-rose-50 rounded-lg hover:bg-rose-100 transition">
+                   <Trash2 size={16} /> Delete
+                 </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

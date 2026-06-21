@@ -13,6 +13,7 @@ interface DashboardScreenProps {
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord }) => {
   const [stats, setStats] = useState<ReturnType<typeof DB.getDashboardStats> | null>(null);
+  const [selectedDueId, setSelectedDueId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -130,20 +131,47 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, 
             {stats.pendingDueRecords.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-6">No pending dues. Great job!</p>
             ) : (
-              stats.pendingDueRecords.slice(0, 5).map(record => (
-                <div key={record.id} className="flex items-center justify-between p-3 rounded-lg border border-rose-100 bg-rose-50/30">
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">{record.customerName}</p>
-                    <p className="text-xs text-gray-500">{record.vehicleNumber} • {format(new Date(record.dateOfService), 'MMM dd, yyyy')}</p>
+              stats.pendingDueRecords.slice(0, 5).map(record => {
+                const isSelected = selectedDueId === record.id;
+                return (
+                  <div 
+                    key={record.id} 
+                    onClick={() => setSelectedDueId(isSelected ? null : record.id)}
+                    className={`flex flex-col p-3 rounded-lg border transition-all cursor-pointer ${
+                      isSelected 
+                        ? 'border-rose-400 bg-rose-50/50 shadow-sm' 
+                        : 'border-rose-100 bg-rose-50/30 hover:bg-rose-50/60'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{record.customerName}</p>
+                        <p className="text-xs text-gray-500">{record.vehicleNumber} • {format(new Date(record.dateOfService), 'MMM dd, yyyy')}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-rose-600">
+                          {formatCurrency(record.dueAmount)}
+                        </p>
+                        <p className="text-[10px] text-gray-500">Invoice: {record.id}</p>
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <div className="mt-3 pt-3 border-t border-rose-100 flex gap-2 justify-end">
+                        <p className="text-[11px] text-rose-600/80 mr-auto self-center select-none font-medium">Click button to open edit form and settle due</p>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onEditRecord) onEditRecord(record);
+                          }}
+                          className="px-3.5 py-1.5 text-xs font-bold bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                        >
+                          <Edit2 size={13} /> Edit Entry & Clear Due
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-rose-600">
-                      {formatCurrency(record.dueAmount)}
-                    </p>
-                    <p className="text-[10px] text-gray-500">Invoice: {record.id}</p>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
              {stats.pendingDueRecords.length > 5 && (
               <button className="w-full text-center text-sm text-primary-600 font-medium pt-2">

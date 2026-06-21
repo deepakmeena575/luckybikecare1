@@ -68,10 +68,11 @@ const VEHICLE_MODELS = [
 interface NewServiceScreenProps {
   onSuccess?: () => void;
   editingRecord?: ServiceRecord | null;
+  isReentry?: boolean;
   onViewInvoice?: (record: ServiceRecord) => void;
 }
 
-export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess, editingRecord, onViewInvoice }) => {
+export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess, editingRecord, isReentry = false, onViewInvoice }) => {
   const [record, setRecord] = useState({
     vehicleNumber: '',
     customerName: '',
@@ -89,22 +90,37 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess, e
 
   useEffect(() => {
     if (editingRecord) {
-      setRecord({
-        vehicleNumber: editingRecord.vehicleNumber,
-        customerName: editingRecord.customerName,
-        mobileNumber: editingRecord.mobileNumber,
-        vehicleModel: editingRecord.vehicleModel,
-        dateOfService: format(new Date(editingRecord.dateOfService), 'yyyy-MM-dd'),
-        kilometerReading: editingRecord.kilometerReading.toString(),
-        labourCost: editingRecord.labourCost.toString(),
-        cashPaid: editingRecord.cashPaid.toString(),
-        onlinePaid: editingRecord.onlinePaid.toString()
-      });
-      setServiceItems(parseServiceDescription(editingRecord.serviceDescription));
+      if (isReentry) {
+        setRecord({
+          vehicleNumber: editingRecord.vehicleNumber,
+          customerName: editingRecord.customerName,
+          mobileNumber: editingRecord.mobileNumber,
+          vehicleModel: editingRecord.vehicleModel,
+          dateOfService: format(new Date(), 'yyyy-MM-dd'),
+          kilometerReading: '',
+          labourCost: '',
+          cashPaid: '',
+          onlinePaid: ''
+        });
+        setServiceItems([]);
+      } else {
+        setRecord({
+          vehicleNumber: editingRecord.vehicleNumber,
+          customerName: editingRecord.customerName,
+          mobileNumber: editingRecord.mobileNumber,
+          vehicleModel: editingRecord.vehicleModel,
+          dateOfService: format(new Date(editingRecord.dateOfService), 'yyyy-MM-dd'),
+          kilometerReading: editingRecord.kilometerReading.toString(),
+          labourCost: editingRecord.labourCost.toString(),
+          cashPaid: editingRecord.cashPaid.toString(),
+          onlinePaid: editingRecord.onlinePaid.toString()
+        });
+        setServiceItems(parseServiceDescription(editingRecord.serviceDescription));
+      }
     } else {
       resetForm();
     }
-  }, [editingRecord]);
+  }, [editingRecord, isReentry]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -161,7 +177,7 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess, e
 
     try {
       let saved;
-      if (editingRecord) {
+      if (editingRecord && !isReentry) {
         saved = await DB.updateRecord(editingRecord.id, newRecord);
       } else {
         saved = await DB.addRecord(newRecord);
