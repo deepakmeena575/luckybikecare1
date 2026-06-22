@@ -54,7 +54,7 @@ export const Sidebar: React.FC<NavProps> = ({ currentTab, setCurrentTab, isOpen,
           )}
         </div>
 
-        <nav className="space-y-1.5 flex-1 mt-2">
+        <nav className="space-y-1.5 flex-1 mt-2 overflow-y-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
