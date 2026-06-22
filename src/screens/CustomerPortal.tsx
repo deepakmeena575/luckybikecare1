@@ -5,7 +5,6 @@ import { ServiceRecord } from '../types';
 import { formatCurrency, parseServiceDescription } from '../utils';
 import { format } from 'date-fns';
 import { InvoiceModal } from '../components/InvoiceModal';
-import { WhatsAppModal } from '../components/WhatsAppModal';
 
 export const CustomerPortal: React.FC<{ initialInvoiceId?: string }> = ({ initialInvoiceId }) => {
   const [vehicleNumber, setVehicleNumber] = useState('');
@@ -15,7 +14,6 @@ export const CustomerPortal: React.FC<{ initialInvoiceId?: string }> = ({ initia
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [viewRecord, setViewRecord] = useState<ServiceRecord | null>(null);
-  const [whatsAppRecord, setWhatsAppRecord] = useState<ServiceRecord | null>(null);
 
   // Parse query params and auto-login if they exist
   useEffect(() => {
@@ -276,13 +274,6 @@ export const CustomerPortal: React.FC<{ initialInvoiceId?: string }> = ({ initia
       <InvoiceModal 
         record={viewRecord} 
         onClose={() => setViewRecord(null)} 
-        onWhatsApp={() => setWhatsAppRecord(viewRecord)}
-      />
-
-      {/* WhatsApp Modal Overlay */}
-      <WhatsAppModal 
-        record={whatsAppRecord} 
-        onClose={() => setWhatsAppRecord(null)} 
       />
     </div>
   );

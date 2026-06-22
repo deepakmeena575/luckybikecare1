@@ -159,24 +159,24 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onViewRecord, onEdit
                         {record.dueAmount > 0 && <div className="text-[10px] uppercase font-bold text-rose-500">Due: {formatCurrency(record.dueAmount)}</div>}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                        <div className="flex items-center justify-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => onViewRecord && onViewRecord(record)} className="p-1.5 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition" title="View Details">
-                            <Eye size={16} />
+                        <div className="flex items-center justify-center gap-2">
+                          <button onClick={() => onViewRecord && onViewRecord(record)} className="p-2 text-gray-700 bg-gray-100 rounded-lg shadow-sm hover:bg-gray-200 hover:shadow transition" title="View Details">
+                            <Eye size={18} strokeWidth={2.5} />
                           </button>
-                          <button onClick={() => onViewHistory && onViewHistory(record.vehicleNumber)} className="p-1.5 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition" title="View History">
-                            <History size={16} />
+                          <button onClick={() => onViewHistory && onViewHistory(record.vehicleNumber)} className="p-2 text-indigo-700 bg-indigo-50 rounded-lg shadow-sm hover:bg-indigo-100 hover:shadow transition" title="View History">
+                            <History size={18} strokeWidth={2.5} />
                           </button>
-                          <button onClick={() => onReentry && onReentry(record)} className="p-1.5 text-emerald-600 bg-emerald-50 rounded hover:bg-emerald-100 transition" title="Repeat Service">
-                            <RefreshCcw size={16} />
+                          <button onClick={() => onReentry && onReentry(record)} className="p-2 text-emerald-700 bg-emerald-50 rounded-lg shadow-sm hover:bg-emerald-100 hover:shadow transition" title="Repeat Service">
+                            <RefreshCcw size={18} strokeWidth={2.5} />
                           </button>
-                          <button onClick={() => onWhatsApp && onWhatsApp(record)} className="p-1.5 text-[#128C7E] bg-[#E8F8F5] rounded hover:bg-[#D1F2EB] transition" title="WhatsApp">
-                            <MessageCircle size={16} />
+                          <button onClick={() => onWhatsApp && onWhatsApp(record)} className="p-2 text-teal-700 bg-teal-50 rounded-lg shadow-sm hover:bg-teal-100 hover:shadow transition" title="WhatsApp">
+                            <MessageCircle size={18} strokeWidth={2.5} />
                           </button>
-                          <button onClick={() => onEditRecord && onEditRecord(record)} className="p-1.5 text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition" title="Edit">
-                            <Edit2 size={16} />
+                          <button onClick={() => onEditRecord && onEditRecord(record)} className="p-2 text-amber-700 bg-amber-50 rounded-lg shadow-sm hover:bg-amber-100 hover:shadow transition" title="Edit">
+                            <Edit2 size={18} strokeWidth={2.5} />
                           </button>
-                          <button onClick={() => onDeleteRecord && onDeleteRecord(record)} className="p-1.5 text-rose-600 bg-rose-50 rounded hover:bg-rose-100 transition" title="Delete">
-                            <Trash2 size={16} />
+                          <button onClick={() => onDeleteRecord && onDeleteRecord(record)} className="p-2 text-rose-700 bg-rose-50 rounded-lg shadow-sm hover:bg-rose-100 hover:shadow transition" title="Delete">
+                            <Trash2 size={18} strokeWidth={2.5} />
                           </button>
                         </div>
                       </td>
@@ -210,17 +210,17 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onViewRecord, onEdit
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                    <button onClick={() => onViewRecord && onViewRecord(record)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                      <Eye size={14} /> View
+                    <button onClick={() => onViewRecord && onViewRecord(record)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-bold text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200 shadow-sm border border-gray-200">
+                      <Eye size={16} strokeWidth={2.5} /> View
                     </button>
-                    <button onClick={() => onWhatsApp && onWhatsApp(record)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#128C7E] bg-[#E8F8F5] rounded-lg border border-[#D1F2EB]">
-                      <MessageCircle size={14} /> Send
+                    <button onClick={() => onWhatsApp && onWhatsApp(record)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-bold text-teal-800 bg-teal-50 rounded-lg shadow-sm border border-teal-200 hover:bg-teal-100">
+                      <MessageCircle size={16} strokeWidth={2.5} /> Send
                     </button>
-                    <button onClick={() => onViewHistory && onViewHistory(record.vehicleNumber)} className="flex items-center justify-center px-3 py-2 text-gray-600 bg-gray-100 rounded-lg">
-                      <History size={14} />
+                    <button onClick={() => onViewHistory && onViewHistory(record.vehicleNumber)} className="flex items-center justify-center px-4 py-2 text-indigo-800 bg-indigo-50 rounded-lg shadow-sm border border-indigo-200 hover:bg-indigo-100">
+                      <History size={16} strokeWidth={2.5} />
                     </button>
-                    <button onClick={() => onEditRecord && onEditRecord(record)} className="flex items-center justify-center px-3 py-2 text-amber-600 bg-amber-50 rounded-lg">
-                      <Edit2 size={14} />
+                    <button onClick={() => onEditRecord && onEditRecord(record)} className="flex items-center justify-center px-4 py-2 text-amber-800 bg-amber-50 rounded-lg shadow-sm border border-amber-200 hover:bg-amber-100">
+                      <Edit2 size={16} strokeWidth={2.5} />
                     </button>
                   </div>
                 </div>
