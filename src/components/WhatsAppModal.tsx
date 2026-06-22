@@ -117,16 +117,21 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({ record, onClose })
            </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-between items-center">
-           <p className="text-sm text-gray-500">
-             Will open WhatsApp with pre-filled text.
-           </p>
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex flex-col sm:flex-row justify-between items-center gap-4">
+           <div className="text-sm text-gray-500 bg-blue-50 border border-blue-100 p-3 rounded-lg text-blue-800 w-full sm:w-auto flex-1">
+             <p className="font-medium flex items-center gap-2">
+               <span className="text-xl">ℹ️</span> Note on PDFs
+             </p>
+             <p className="mt-1 text-xs opacity-90">
+               WhatsApp doesn't allow automatic file attachments. Please download the Invoice PDF first using the 'View/Print' button, then attach it manually in the chat.
+             </p>
+           </div>
            <button
              onClick={handleSend}
-             className="flex items-center gap-2 px-6 py-2.5 bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold rounded-xl shadow-md transition-colors active:scale-95"
+             className="flex items-center justify-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold rounded-xl shadow-md transition-colors active:scale-95 w-full sm:w-auto whitespace-nowrap"
            >
              <Send size={18} />
-             Open WhatsApp & Send
+             Open WhatsApp
            </button>
         </div>
       </div>

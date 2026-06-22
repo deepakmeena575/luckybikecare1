@@ -35,7 +35,17 @@ export class DB {
 
     // Generate Invoice Number format: LBC-XXXX-YYYY
     const year = new Date().getFullYear();
-    const id = `LBC-${String(records.length + 1).padStart(4, '0')}-${year}`;
+    let maxIdNum = 0;
+    records.forEach(r => {
+      const parts = r.id.split('-');
+      if (parts.length === 3 && parts[0] === 'LBC') {
+        const num = parseInt(parts[1], 10);
+        if (!isNaN(num) && num > maxIdNum) {
+          maxIdNum = num;
+        }
+      }
+    });
+    const id = `LBC-${String(maxIdNum + 1).padStart(4, '0')}-${year}`;
 
     const timestamp = new Date().toISOString();
     const nextServiceDate = format(addMonths(new Date(record.dateOfService), 3), 'yyyy-MM-dd');
@@ -141,6 +151,37 @@ export class DB {
     } catch(err: any) {
       console.error('Supabase fetch error:', err);
       throw new Error(err.message || 'Fetch failed');
+    }
+  }
+
+  static async getPublicInvoiceById(id: string): Promise<ServiceRecord | null> {
+    try {
+      const { data, error } = await supabase
+        .from('service_records')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error || !data) return null;
+      return data as ServiceRecord;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
+
+  static async getInvoiceByIdAndMobile(id: string, mobileNumber: string): Promise<ServiceRecord | null> {
+    try {
+      const { data, error } = await supabase
+        .from('service_records')
+        .select('*')
+        .eq('id', id)
+        .eq('mobileNumber', mobileNumber)
+        .single();
+      if (error || !data) return null;
+      return data as ServiceRecord;
+    } catch (e) {
+      console.error(e);
+      return null;
     }
   }
 

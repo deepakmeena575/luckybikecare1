@@ -290,11 +290,25 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess, e
             <h2 className="text-sm font-semibold uppercase tracking-wider">Billing & Payment</h2>
           </div>
           <div className="p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
               <InputGroup label="General Labour Charges" name="labourCost" value={record.labourCost} onChange={handleTextChange} type="number" min="0" />
               <div className="hidden md:block"></div>
-              <InputGroup label="Cash Paid" name="cashPaid" value={record.cashPaid} onChange={handleTextChange} type="number" min="0" />
-              <InputGroup label="Online Payment Data (UPI/Card)" name="onlinePaid" value={record.onlinePaid} onChange={handleTextChange} type="number" min="0" />
+              
+              <div>
+                <InputGroup label="Cash Paid" name="cashPaid" value={record.cashPaid} onChange={handleTextChange} type="number" min="0" />
+                <div className="mt-1 flex gap-2">
+                  <button type="button" onClick={() => setRecord({ ...record, cashPaid: finalServiceBill.toString(), onlinePaid: '0' })} className="text-xs text-primary-600 font-medium hover:text-primary-700">Set Full Cash</button>
+                  <button type="button" onClick={() => setRecord({ ...record, cashPaid: '0' })} className="text-xs text-gray-500 font-medium hover:text-gray-600">Clear</button>
+                </div>
+              </div>
+              
+              <div>
+                <InputGroup label="Online Payment (UPI/Card)" name="onlinePaid" value={record.onlinePaid} onChange={handleTextChange} type="number" min="0" />
+                 <div className="mt-1 flex gap-2">
+                  <button type="button" onClick={() => setRecord({ ...record, onlinePaid: finalServiceBill.toString(), cashPaid: '0' })} className="text-xs text-primary-600 font-medium hover:text-primary-700">Set Full Online</button>
+                  <button type="button" onClick={() => setRecord({ ...record, onlinePaid: '0' })} className="text-xs text-gray-500 font-medium hover:text-gray-600">Clear</button>
+                </div>
+              </div>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
@@ -318,9 +332,9 @@ export const NewServiceScreen: React.FC<NewServiceScreenProps> = ({ onSuccess, e
                 <span>Total Amount Paid:</span>
                 <span className="font-medium">₹{((parseFloat(record.cashPaid) || 0) + (parseFloat(record.onlinePaid) || 0)).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center py-2 mt-1 text-lg font-bold text-rose-600">
+              <div className={`flex justify-between items-center py-2 mt-1 text-lg font-bold ${dueAmount > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                 <span>Due Amount:</span>
-                <span>₹{dueAmount.toFixed(2)}</span>
+                <span>{dueAmount > 0 ? `₹${dueAmount.toFixed(2)}` : '₹0.00 (Fully Paid)'}</span>
               </div>
               
               <p className="text-xs text-gray-400 text-center mt-3 pt-3 border-t border-gray-200">

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DB } from '../db';
-import { Users, FileText, IndianRupee, AlertCircle, BellRing, Settings, Loader2, Edit2, Printer, Trash2 } from 'lucide-react';
+import { Users, FileText, IndianRupee, AlertCircle, BellRing, Settings, Loader2, Edit2, Printer, Trash2, MessageCircle } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { format } from 'date-fns';
 import { ServiceRecord } from '../types';
@@ -9,9 +9,10 @@ interface DashboardScreenProps {
   onViewRecord?: (r: ServiceRecord) => void;
   onEditRecord?: (r: ServiceRecord) => void;
   onDeleteRecord?: (r: ServiceRecord) => void;
+  onWhatsApp?: (r: ServiceRecord) => void;
 }
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord }) => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord, onWhatsApp }) => {
   const [stats, setStats] = useState<ReturnType<typeof DB.getDashboardStats> | null>(null);
   const [selectedDueId, setSelectedDueId] = useState<string | null>(null);
 
@@ -224,6 +225,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, 
                       <div className="flex items-center justify-end gap-2">
                         <button onClick={() => onViewRecord && onViewRecord(record)} className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition" title="Print/View Invoice">
                           <Printer size={16} />
+                        </button>
+                        <button onClick={() => onWhatsApp && onWhatsApp(record)} className="p-1.5 text-gray-500 hover:text-[#128C7E] hover:bg-[#E8F8F5] rounded-lg transition" title="Share on WhatsApp">
+                          <MessageCircle size={16} />
                         </button>
                         <button onClick={() => onEditRecord && onEditRecord(record)} className="p-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="Edit Record">
                           <Edit2 size={16} />

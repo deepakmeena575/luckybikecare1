@@ -5,8 +5,9 @@ import { ServiceRecord } from '../types';
 import { formatCurrency, parseServiceDescription } from '../utils';
 import { format } from 'date-fns';
 import { InvoiceModal } from '../components/InvoiceModal';
+import { WhatsAppModal } from '../components/WhatsAppModal';
 
-export const CustomerPortal: React.FC = () => {
+export const CustomerPortal: React.FC<{ initialInvoiceId?: string }> = ({ initialInvoiceId }) => {
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,37 +15,55 @@ export const CustomerPortal: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [viewRecord, setViewRecord] = useState<ServiceRecord | null>(null);
+  const [whatsAppRecord, setWhatsAppRecord] = useState<ServiceRecord | null>(null);
 
   // Parse query params and auto-login if they exist
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const v = params.get('v');
     const m = params.get('m');
-    if (v && m) {
+    const v = params.get('v');
+
+    const autoLogin = async (vn: string, mn: string, openInvoiceId?: string) => {
+      setIsLoading(true);
+      try {
+        const data = await DB.getCustomerPortalData(vn, mn);
+        if (data.length > 0) {
+          setRecords(data);
+          setIsAuthenticated(true);
+          if (openInvoiceId) {
+             const preOpenRecord = data.find(r => r.id === openInvoiceId);
+             if (preOpenRecord) setViewRecord(preOpenRecord);
+          }
+        } else {
+           setError('Invalid or expired link. Please enter details manually.');
+        }
+      } catch(err) {
+         setError('Failed to authenticate link.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (initialInvoiceId) {
+      setIsLoading(true);
+      DB.getPublicInvoiceById(initialInvoiceId).then(record => {
+        if (record) {
+          setVehicleNumber(record.vehicleNumber);
+          setMobileNumber(record.mobileNumber);
+          setRecords([record]);
+          setIsAuthenticated(true);
+          setViewRecord(record);
+        } else {
+          setError('Invoice not found.');
+        }
+        setIsLoading(false);
+      });
+    } else if (v && m) {
       setVehicleNumber(decodeURIComponent(v));
       setMobileNumber(decodeURIComponent(m));
-      // Auto trigger login with these credentials after state sets
-      // (Using a slight timeout or directly calling the async function)
-      const autoLogin = async (vn: string, mn: string) => {
-        setIsLoading(true);
-        try {
-          const data = await DB.getCustomerPortalData(vn, mn);
-          if (data.length > 0) {
-            setRecords(data);
-            setIsAuthenticated(true);
-          } else {
-             setError('Invalid or expired link. Please enter details manually.');
-          }
-        } catch(err) {
-           setError('Failed to authenticate link.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
       autoLogin(decodeURIComponent(v), decodeURIComponent(m));
     }
-  }, []);
+  }, [initialInvoiceId]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +99,21 @@ export const CustomerPortal: React.FC = () => {
   };
 
   if (!isAuthenticated) {
+    if (initialInvoiceId && error) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+          <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 mb-6 shadow-sm">
+            <span className="text-4xl font-bold">!</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Invoice Not Found</h1>
+          <p className="text-gray-500 text-center max-w-sm mb-8">{error}</p>
+          <a href="/" className="px-6 py-3 bg-gray-900 hover:bg-black text-white font-semibold rounded-xl shadow-md transition-colors">
+            Go to Homepage
+          </a>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden">
@@ -239,7 +273,17 @@ export const CustomerPortal: React.FC = () => {
       </div>
       
       {/* Invoice Modal Overlay */}
-      <InvoiceModal record={viewRecord} onClose={() => setViewRecord(null)} />
+      <InvoiceModal 
+        record={viewRecord} 
+        onClose={() => setViewRecord(null)} 
+        onWhatsApp={() => setWhatsAppRecord(viewRecord)}
+      />
+
+      {/* WhatsApp Modal Overlay */}
+      <WhatsAppModal 
+        record={whatsAppRecord} 
+        onClose={() => setWhatsAppRecord(null)} 
+      />
     </div>
   );
 };

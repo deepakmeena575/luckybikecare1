@@ -14,10 +14,14 @@ import { Menu } from 'lucide-react';
 import { DB } from './db';
 
 export default function App() {
-  const isPortalView = new URLSearchParams(window.location.search).get('portal') === 'true';
+  const params = new URLSearchParams(window.location.search);
+  const isPortalView = params.get('portal') === 'true';
+  const pathname = window.location.pathname;
+  const isInvoiceRoute = pathname.startsWith('/invoice/');
+  const initialInvoiceId = isInvoiceRoute ? decodeURIComponent(pathname.replace('/invoice/', '').replace(/\/$/, '')) : undefined;
 
-  if (isPortalView) {
-    return <CustomerPortal />;
+  if (isPortalView || isInvoiceRoute) {
+    return <CustomerPortal initialInvoiceId={initialInvoiceId} />;
   }
 
   const [currentTab, setCurrentTab] = useState<Screen>('dashboard');
@@ -63,7 +67,7 @@ export default function App() {
   const renderScreen = () => {
     switch (currentTab) {
       case 'dashboard':
-        return <DashboardScreen onViewRecord={setViewRecord} onEditRecord={handleEdit} onDeleteRecord={handleDelete} />;
+        return <DashboardScreen onViewRecord={setViewRecord} onEditRecord={handleEdit} onDeleteRecord={handleDelete} onWhatsApp={setWhatsappRecord} />;
       case 'new-service':
         return <NewServiceScreen 
                  editingRecord={editingRecord} 
