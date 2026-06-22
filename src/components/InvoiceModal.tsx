@@ -91,7 +91,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ record, onClose }) =
             <h2 className="text-2xl font-bold text-[#2b88fb] mb-1 flex justify-center items-center gap-2">🏍️ Lucky Bike Care</h2>
             <p className="text-[13px]">Professional Motorcycle Service & Repair Center</p>
             <p className="text-[13px] flex justify-center items-center gap-1.5 mt-1">
-              <span className="text-rose-600 text-base">📍</span> Kota, Rajasthan <span className="text-gray-300 mx-1">|</span> <Phone size={13} className="text-gray-600"/> +91 9414377165
+              <span className="text-rose-600 text-base">📍</span> Kota, Rajasthan <span className="text-gray-300 mx-1">|</span> <Phone size={13} className="text-gray-600"/> +91 9414377153
             </p>
             <p className="text-[13px] mt-1 text-gray-600 flex justify-center gap-4">
               <span>Owned by: Rakesh Choursiya</span>
