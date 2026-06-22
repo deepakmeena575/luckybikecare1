@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { DB } from '../db';
 import { ServiceRecord } from '../types';
-import { Search, Clock, FileText, CheckCircle2, ChevronDown, ChevronUp, Phone } from 'lucide-react';
+import { Search, Clock, FileText, CheckCircle2, ChevronDown, ChevronUp, Phone, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency, parseServiceDescription } from '../utils';
 
-export const HistoryScreen: React.FC<{ initialVehicleNumber?: string, onViewRecord?: (record: ServiceRecord) => void }> = ({ initialVehicleNumber, onViewRecord }) => {
+export const HistoryScreen: React.FC<{ initialVehicleNumber?: string, onViewRecord?: (record: ServiceRecord) => void, onWhatsApp?: (record: ServiceRecord) => void }> = ({ initialVehicleNumber, onViewRecord, onWhatsApp }) => {
   const [vehicleNumber, setVehicleNumber] = useState(initialVehicleNumber || '');
   const [history, setHistory] = useState<ServiceRecord[] | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -188,6 +188,9 @@ export const HistoryScreen: React.FC<{ initialVehicleNumber?: string, onViewReco
                          </div>
 
                          <div className="mt-4 flex justify-end">
+                           <button onClick={(e) => { e.stopPropagation(); if(onWhatsApp) onWhatsApp(record); }} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[#128C7E] bg-[#E8F8F5] rounded-lg hover:bg-[#D1F2EB] transition shadow-sm border border-[#D1F2EB]">
+                             <MessageCircle size={16} /> WhatsApp
+                           </button>
                            <button onClick={(e) => { e.stopPropagation(); if(onViewRecord) onViewRecord(record); }} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition shadow-sm border border-primary-100">
                              <FileText size={16} /> View/Print Bill
                            </button>

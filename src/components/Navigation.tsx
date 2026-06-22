@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, PlusCircle, Search, Clock, FileBarChart2, Phone, X, User } from 'lucide-react';
+import { Home, PlusCircle, Search, Clock, FileBarChart2, Phone, X, User, QrCode } from 'lucide-react';
 import { Screen } from '../types';
 import { cn } from '../utils';
 
@@ -17,6 +17,7 @@ export const Sidebar: React.FC<NavProps> = ({ currentTab, setCurrentTab, isOpen,
     { id: 'search' as Screen, label: 'Search', icon: Search },
     { id: 'history' as Screen, label: 'Vehicle History', icon: Clock },
     { id: 'reports' as Screen, label: 'Reports & Analytics', icon: FileBarChart2 },
+    { id: 'qr-setup' as Screen, label: 'QR Portal Setup', icon: QrCode },
   ];
 
   return (

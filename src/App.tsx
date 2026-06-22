@@ -6,14 +6,24 @@ import { NewServiceScreen } from './screens/NewServiceScreen';
 import { SearchScreen } from './screens/SearchScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { ReportsScreen } from './screens/ReportsScreen';
+import { QRSetupScreen } from './screens/QRSetupScreen';
+import { CustomerPortal } from './screens/CustomerPortal';
 import { InvoiceModal } from './components/InvoiceModal';
+import { WhatsAppModal } from './components/WhatsAppModal';
 import { Menu } from 'lucide-react';
 import { DB } from './db';
 
 export default function App() {
+  const isPortalView = new URLSearchParams(window.location.search).get('portal') === 'true';
+
+  if (isPortalView) {
+    return <CustomerPortal />;
+  }
+
   const [currentTab, setCurrentTab] = useState<Screen>('dashboard');
   const [viewRecord, setViewRecord] = useState<ServiceRecord | null>(null);
   const [editingRecord, setEditingRecord] = useState<ServiceRecord | null>(null);
+  const [whatsappRecord, setWhatsappRecord] = useState<ServiceRecord | null>(null);
   const [isReentry, setIsReentry] = useState<boolean>(false);
   const [historyVehicleQuery, setHistoryVehicleQuery] = useState<string>('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -72,11 +82,18 @@ export default function App() {
                  onDeleteRecord={handleDelete} 
                  onViewHistory={handleViewHistory}
                  onReentry={handleReentry}
+                 onWhatsApp={setWhatsappRecord}
                />;
       case 'history':
-        return <HistoryScreen initialVehicleNumber={historyVehicleQuery} onViewRecord={setViewRecord} />;
+        return <HistoryScreen 
+                 initialVehicleNumber={historyVehicleQuery} 
+                 onViewRecord={setViewRecord} 
+                 onWhatsApp={setWhatsappRecord}
+               />;
       case 'reports':
         return <ReportsScreen />;
+      case 'qr-setup':
+        return <QRSetupScreen />;
       default:
         return <DashboardScreen onViewRecord={setViewRecord} onEditRecord={handleEdit} onDeleteRecord={handleDelete} />;
     }
@@ -118,7 +135,20 @@ export default function App() {
         {renderScreen()}
       </div>
 
-      <InvoiceModal record={viewRecord} onClose={() => setViewRecord(null)} />
+      <InvoiceModal 
+        record={viewRecord} 
+        onClose={() => setViewRecord(null)} 
+        onWhatsApp={() => {
+          if (viewRecord) {
+             setWhatsappRecord(viewRecord);
+             setViewRecord(null);
+          }
+        }}
+      />
+      <WhatsAppModal 
+        record={whatsappRecord}
+        onClose={() => setWhatsappRecord(null)}
+      />
     </div>
   );
 }

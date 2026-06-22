@@ -25,4 +25,4 @@ export interface ServiceRecord {
   nextServiceDate: string; // ISO date string
 }
 
-export type Screen = 'dashboard' | 'new-service' | 'search' | 'history' | 'reports';
+export type Screen = 'dashboard' | 'new-service' | 'search' | 'history' | 'reports' | 'qr-setup';

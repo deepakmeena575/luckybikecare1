@@ -92,6 +92,58 @@ export class DB {
     }
   }
 
+  static async getPaginatedRecords(
+    query: string = '',
+    filter: 'all' | 'today' | 'last7' | 'last30' | 'thisMonth' = 'all',
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ data: ServiceRecord[], count: number }> {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    
+    try {
+      let qBuilder = supabase
+        .from('service_records')
+        .select('*', { count: 'exact' });
+
+      if (query.trim()) {
+        const q = query.toLowerCase().trim();
+        qBuilder = qBuilder.or(`vehicleNumber.ilike.%${q}%,customerName.ilike.%${q}%,mobileNumber.ilike.%${q}%,id.ilike.%${q}%`);
+      }
+
+      if (filter !== 'all') {
+        const now = new Date();
+        let startDate = new Date();
+        if (filter === 'today') {
+           startDate = new Date(now.setHours(0,0,0,0));
+        } else if (filter === 'last7') {
+           startDate.setDate(startDate.getDate() - 7);
+        } else if (filter === 'last30') {
+           startDate.setDate(startDate.getDate() - 30);
+        } else if (filter === 'thisMonth') {
+           startDate = startOfMonth(new Date());
+        }
+        
+        qBuilder = qBuilder.gte('dateOfService', startDate.toISOString());
+      }
+
+      const { data, count, error } = await qBuilder
+        .order('dateOfService', { ascending: false })
+        .order('timestamp', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      
+      return {
+        data: (data || []) as ServiceRecord[],
+        count: count || 0
+      };
+    } catch(err: any) {
+      console.error('Supabase fetch error:', err);
+      throw new Error(err.message || 'Fetch failed');
+    }
+  }
+
   static async searchRecords(query: string): Promise<ServiceRecord[]> {
     const q = query.toLowerCase().trim();
     if (!q) return [];
@@ -125,6 +177,25 @@ export class DB {
     } catch (error: any) {
       console.error('Supabase getHistory error:', error);
       throw new Error(error.message || 'Error fetching history');
+    }
+  }
+
+  static async getCustomerPortalData(vehicleNumber: string, mobileNumber: string): Promise<ServiceRecord[]> {
+    const vq = vehicleNumber.toLowerCase().trim();
+    const mq = mobileNumber.trim();
+    try {
+      const { data, error } = await supabase
+        .from('service_records')
+        .select('*')
+        .ilike('vehicleNumber', `%${vq}%`)
+        .eq('mobileNumber', mq)
+        .order('dateOfService', { ascending: false });
+        
+      if (error) throw error;
+      return (data || []) as ServiceRecord[];
+    } catch (error: any) {
+      console.error('Supabase customer portal error:', error);
+      throw new Error(error.message || 'Error fetching data');
     }
   }
 
