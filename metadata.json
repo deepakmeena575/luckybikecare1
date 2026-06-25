@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Lucky Bike Care",
+  "description": "Premium commercial bike service management system with customer self-service portals, invoices, and analytics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

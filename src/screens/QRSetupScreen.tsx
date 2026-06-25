@@ -19,14 +19,7 @@ export const QRSetupScreen: React.FC = () => {
   }, []);
 
   const handlePrint = () => {
-    const printContent = qrRef.current?.innerHTML;
-    if (printContent) {
-      const originalContents = document.body.innerHTML;
-      document.body.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif;">${printContent}</div>`;
-      window.print();
-      document.body.innerHTML = originalContents;
-      window.location.reload();
-    }
+    window.print();
   };
 
   const handleDownload = () => {
@@ -43,7 +36,7 @@ export const QRSetupScreen: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 pb-24 md:pb-6 max-w-6xl mx-auto w-full animate-fade-in">
-      <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
+      <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4 no-print">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">QR Portal Setup</h1>
           <p className="text-sm text-gray-500 mt-1">Generate and print customer self-service QR code</p>
@@ -52,7 +45,7 @@ export const QRSetupScreen: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Customization Settings */}
-        <div className="space-y-6">
+        <div className="space-y-6 no-print">
           <div className="glass-card p-6 border border-gray-200 rounded-xl bg-white shadow-sm">
             <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <Settings size={20} className="text-gray-500" />
@@ -122,10 +115,10 @@ export const QRSetupScreen: React.FC = () => {
         </div>
 
         {/* QR Preview */}
-        <div className="flex items-center justify-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-8">
+        <div className="flex items-center justify-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-8 print:p-0 print:border-none print:bg-white print:fixed print:inset-0 print:z-[9999] print:flex print:items-center print:justify-center">
           <div 
             ref={qrRef}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col mx-auto border border-gray-100"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col mx-auto border border-gray-100 print:shadow-none print:border-none"
           >
             {/* Header */}
             <div className="bg-primary-600 p-6 text-center text-white relative">

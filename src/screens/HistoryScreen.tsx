@@ -187,7 +187,7 @@ export const HistoryScreen: React.FC<{ initialVehicleNumber?: string, onViewReco
                             </div>
                          </div>
 
-                         <div className="mt-4 flex justify-end">
+                         <div className="mt-4 flex justify-end gap-2">
                            <button onClick={(e) => { e.stopPropagation(); if(onWhatsApp) onWhatsApp(record); }} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[#128C7E] bg-[#E8F8F5] rounded-lg hover:bg-[#D1F2EB] transition shadow-sm border border-[#D1F2EB]">
                              <MessageCircle size={16} /> WhatsApp
                            </button>
