@@ -38,7 +38,7 @@ Service Date: ${dateFormatted}
 Total Amount: ${formatCurrency(record.totalCost)}${record.dueAmount > 0 ? `\nDue Amount: ${formatCurrency(record.dueAmount)}` : ''}
 
 Next Recommended Service:
-${nextDateFormatted} or at ${Number(record.kilometerReading || 0) + 2500} kms.
+${nextDateFormatted}
 
 Thank you for your trust.
 
@@ -62,13 +62,17 @@ Contact: ${shopMobileNumber}`;
     case 'reminder':
       return `Hello ${record.customerName},
 
-It's time to pamper your ride! 🏍️
-Your next service for *${record.vehicleNumber}* is due on *${nextDateFormatted}*.
+This is a friendly reminder from Lucky Bike Care.
 
-Regular servicing keeps your vehicle in top condition and prevents major repairs.
+Your vehicle *${record.vehicleNumber}* is due for its next service.
 
-Visit us at ${customShopName} soon!
-Contact: ${shopMobileNumber}`;
+Recommended Service Date:
+${nextDateFormatted}
+
+Please visit our workshop to keep your vehicle in excellent condition.
+
+Thank you,
+Lucky Bike Care`;
 
     case 'ready':
       return `Hello ${record.customerName},

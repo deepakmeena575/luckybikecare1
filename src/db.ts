@@ -257,13 +257,21 @@ export class DB {
       .filter(r => r.dueAmount > 0)
       .reduce((sum, r) => sum + r.dueAmount, 0);
 
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-    const upcomingReminders = records.filter(r => {
-      const nextDate = new Date(r.nextServiceDate);
-      return nextDate >= now && nextDate <= thirtyDaysFromNow;
+    // Group by vehicle to only consider the latest record per vehicle for reminders
+    const latestRecordsByVehicle = new Map<string, ServiceRecord>();
+    records.forEach(r => {
+      const key = r.vehicleNumber.toLowerCase().trim();
+      const existing = latestRecordsByVehicle.get(key);
+      if (!existing || new Date(r.dateOfService) > new Date(existing.dateOfService)) {
+        latestRecordsByVehicle.set(key, r);
+      }
     });
+
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const upcomingReminders = Array.from(latestRecordsByVehicle.values()).filter(r => {
+      const nextDate = new Date(r.nextServiceDate);
+      return nextDate.getMonth() === now.getMonth() && nextDate.getFullYear() === now.getFullYear();
+    }).sort((a, b) => new Date(a.nextServiceDate).getTime() - new Date(b.nextServiceDate).getTime());
 
     const recentRecords = records.slice(0, 5);
 

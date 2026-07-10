@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { DB } from '../db';
 import { Users, FileText, IndianRupee, AlertCircle, BellRing, Settings, Loader2, Edit2, Printer, Trash2, MessageCircle } from 'lucide-react';
 import { formatCurrency } from '../utils';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { ServiceRecord } from '../types';
+import { generateWhatsAppText } from '../whatsappTemplates';
 
 interface DashboardScreenProps {
   onViewRecord?: (r: ServiceRecord) => void;
@@ -15,6 +16,9 @@ interface DashboardScreenProps {
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord, onWhatsApp }) => {
   const [stats, setStats] = useState<ReturnType<typeof DB.getDashboardStats> | null>(null);
   const [selectedDueId, setSelectedDueId] = useState<string | null>(null);
+  const [selectedReminderId, setSelectedReminderId] = useState<string | null>(null);
+
+  const [showAllReminders, setShowAllReminders] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -95,25 +99,73 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, 
           
           <div className="space-y-3">
             {stats.upcomingReminderRecords.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-6">No reminders in the next 30 days.</p>
+              <p className="text-sm text-gray-500 text-center py-6">No upcoming reminders.</p>
             ) : (
-              stats.upcomingReminderRecords.slice(0, 5).map(record => (
-                <div key={record.id} className="flex flex-col sm:flex-row sm:justify-between p-3 rounded-lg border border-gray-100 bg-gray-50/50">
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">{record.customerName}</p>
-                    <p className="text-xs text-gray-500">{record.vehicleNumber} • {record.mobileNumber}</p>
+              stats.upcomingReminderRecords.slice(0, showAllReminders ? undefined : 5).map(record => {
+                const isSelected = selectedReminderId === record.id;
+                return (
+                <div 
+                  key={record.id} 
+                  onClick={() => setSelectedReminderId(isSelected ? null : record.id)}
+                  className={`flex flex-col p-3 rounded-lg border transition-all cursor-pointer ${
+                    isSelected 
+                      ? 'border-amber-400 bg-amber-50/50 shadow-sm' 
+                      : 'border-gray-100 bg-gray-50/30 hover:bg-amber-50/40'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{record.customerName}</p>
+                      <p className="text-xs text-gray-500 mb-1">{record.vehicleNumber} • {record.mobileNumber}</p>
+                      <p className="text-xs text-gray-600">Last Service: {format(new Date(record.dateOfService), 'MMM dd, yyyy')}</p>
+                    </div>
+                    <div className="mt-2 sm:mt-0 text-left sm:text-right">
+                      <p className="text-xs font-bold text-amber-700">
+                        Due: {format(new Date(record.nextServiceDate), 'MMM dd, yyyy')}
+                      </p>
+                      {(() => {
+                        const days = differenceInDays(new Date(record.nextServiceDate), new Date());
+                        let daysText = "";
+                        if (days < 0) {
+                          daysText = `${Math.abs(days)} days overdue`;
+                        } else if (days === 0) {
+                          daysText = "Due today";
+                        } else {
+                          daysText = `In ${days} days`;
+                        }
+                        return (
+                          <p className={`text-xs mt-1 font-medium ${days < 0 ? 'text-rose-600' : 'text-amber-600'}`}>
+                            {daysText}
+                          </p>
+                        );
+                      })()}
+                    </div>
                   </div>
-                  <div className="mt-2 sm:mt-0 text-left sm:text-right">
-                    <p className="text-xs font-medium text-amber-600">
-                      Due: {format(new Date(record.nextServiceDate), 'MMM dd, yyyy')}
-                    </p>
-                  </div>
+                  {isSelected && (
+                    <div className="mt-3 pt-3 border-t border-amber-100 flex gap-2 justify-end">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const text = generateWhatsAppText(record, 'reminder', 'Lucky Bike Care');
+                          const m = record.mobileNumber.replace(/\D/g, '');
+                          window.open(`https://wa.me/91${m}?text=${encodeURIComponent(text)}`, '_blank');
+                        }}
+                        className="px-3.5 py-1.5 text-xs font-bold bg-[#25D366] text-white rounded-lg hover:bg-[#128C7E] transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                      >
+                        <MessageCircle size={13} /> Send Reminder via WhatsApp
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))
+                );
+              })
             )}
             {stats.upcomingReminderRecords.length > 5 && (
-              <button className="w-full text-center text-sm text-primary-600 font-medium pt-2">
-                View all {stats.upcomingReminderRecords.length} reminders
+              <button 
+                onClick={() => setShowAllReminders(!showAllReminders)}
+                className="w-full text-center text-sm text-primary-600 font-medium pt-2 hover:text-primary-700 transition"
+              >
+                {showAllReminders ? "Show less" : `View all ${stats.upcomingReminderRecords.length} reminders`}
               </button>
             )}
           </div>
