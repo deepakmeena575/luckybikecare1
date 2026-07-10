@@ -64,15 +64,15 @@ Contact: ${shopMobileNumber}`;
 
 This is a friendly reminder from Lucky Bike Care.
 
-Your vehicle *${record.vehicleNumber}* is due for its next service.
+Your vehicle *${record.vehicleNumber}* is now due for its scheduled service.
 
-Recommended Service Date:
-${nextDateFormatted}
+*Next Service Due Date:* ${nextDateFormatted}
 
-Please visit our workshop to keep your vehicle in excellent condition.
+We recommend bringing your vehicle in for servicing to maintain its performance and reliability.
 
-Thank you,
-Lucky Bike Care`;
+Thank you for choosing Lucky Bike Care.
+
+📞 Contact: ${shopMobileNumber}`;
 
     case 'ready':
       return `Hello ${record.customerName},
