@@ -16,8 +16,15 @@ CREATE TABLE service_records (
   "onlinePaid" NUMERIC NOT NULL DEFAULT 0,
   "dueAmount" NUMERIC NOT NULL DEFAULT 0,
   "nextServiceDate" DATE NOT NULL,
-  "serviceCounter" INTEGER NOT NULL DEFAULT 1
+  "serviceCounter" INTEGER NOT NULL DEFAULT 1,
+  "reminderStatus" TEXT NOT NULL DEFAULT 'Not Sent',
+  "lastReminderSentDate" TIMESTAMPTZ
 );
+
+-- For existing databases, execute this migration script:
+ALTER TABLE service_records 
+ADD COLUMN IF NOT EXISTS "reminderStatus" TEXT NOT NULL DEFAULT 'Not Sent',
+ADD COLUMN IF NOT EXISTS "lastReminderSentDate" TIMESTAMPTZ;
 
 -- Recommended: Set up Row Level Security (RLS) if you need client-side restrictions.
 -- For a basic local admin tool, you can simply allow all (not recommended for public apps):

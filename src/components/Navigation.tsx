@@ -1,7 +1,8 @@
 import React from 'react';
-import { Home, PlusCircle, Search, Clock, FileBarChart2, Phone, X, User, QrCode } from 'lucide-react';
+import { Home, PlusCircle, Bell, Search, Clock, FileBarChart2, Phone, X, User, QrCode, ArrowDownToLine, Trash2 } from 'lucide-react';
 import { Screen } from '../types';
 import { cn } from '../utils';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface NavProps {
   currentTab: Screen;
@@ -11,13 +12,17 @@ interface NavProps {
 }
 
 export const Sidebar: React.FC<NavProps> = ({ currentTab, setCurrentTab, isOpen, onClose }) => {
+  const { isInstallable, isInstalled, install } = usePWAInstall();
+
   const tabs = [
     { id: 'dashboard' as Screen, label: 'Dashboard', icon: Home },
     { id: 'new-service' as Screen, label: 'New Service', icon: PlusCircle },
+    { id: 'reminders' as Screen, label: 'Service Reminders', icon: Bell },
     { id: 'search' as Screen, label: 'Search', icon: Search },
     { id: 'history' as Screen, label: 'Vehicle History', icon: Clock },
     { id: 'reports' as Screen, label: 'Reports & Analytics', icon: FileBarChart2 },
     { id: 'qr-setup' as Screen, label: 'QR Portal Setup', icon: QrCode },
+    { id: 'trash' as Screen, label: 'Recently Deleted', icon: Trash2 },
   ];
 
   return (
@@ -79,6 +84,18 @@ export const Sidebar: React.FC<NavProps> = ({ currentTab, setCurrentTab, isOpen,
             );
           })}
         </nav>
+
+        {isInstallable && !isInstalled && (
+          <div className="pt-2 px-1">
+            <button
+              onClick={install}
+              className="flex items-center justify-center w-full px-3 py-2.5 rounded-xl transition-all duration-200 text-xs font-bold bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200/80 shadow-xs space-x-2 active:scale-95"
+            >
+              <ArrowDownToLine size={15} className="text-primary-600" />
+              <span>Install Lucky Bike Care</span>
+            </button>
+          </div>
+        )}
 
         <div className="mt-auto pt-4">
           <div className="bg-gradient-to-b from-gray-50 to-gray-100/50 p-4 rounded-2xl border border-gray-200 text-sm md:text-center text-left shadow-sm">

@@ -1,24 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { DB } from '../db';
-import { Users, FileText, IndianRupee, AlertCircle, BellRing, Settings, Loader2, Edit2, Printer, Trash2, MessageCircle } from 'lucide-react';
+import { Users, FileText, IndianRupee, AlertCircle, Loader2, Edit2, Printer, Trash2, MessageCircle, BarChart3, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '../utils';
-import { format, differenceInDays } from 'date-fns';
-import { ServiceRecord } from '../types';
-import { generateWhatsAppText } from '../whatsappTemplates';
+import { format } from 'date-fns';
+import { ServiceRecord, Screen } from '../types';
 
 interface DashboardScreenProps {
   onViewRecord?: (r: ServiceRecord) => void;
   onEditRecord?: (r: ServiceRecord) => void;
   onDeleteRecord?: (r: ServiceRecord) => void;
   onWhatsApp?: (r: ServiceRecord) => void;
+  onNavigate?: (screen: Screen) => void;
 }
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord, onWhatsApp }) => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, onEditRecord, onDeleteRecord, onWhatsApp, onNavigate }) => {
   const [stats, setStats] = useState<ReturnType<typeof DB.getDashboardStats> | null>(null);
   const [selectedDueId, setSelectedDueId] = useState<string | null>(null);
-  const [selectedReminderId, setSelectedReminderId] = useState<string | null>(null);
 
-  const [showAllReminders, setShowAllReminders] = useState(false);
+  const refreshStats = async () => {
+    try {
+      const data = await DB.getDashboardStats();
+      setStats(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -56,7 +62,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, 
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         <StatCard 
           title="Total Customers" 
           value={stats.totalCustomers.toString()} 
@@ -84,93 +90,37 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, 
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-        {/* Upcoming Reminders */}
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-              <BellRing size={18} className="text-amber-500" />
-              <span>Upcoming Service Reminders</span>
-            </h2>
-            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">
-              {stats.upcomingRemindersCount}
-            </span>
+      {/* Workshop Reports & Analytics Quick Access */}
+      <div className="glass-card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/40 via-white to-white mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-primary-100 text-primary-700 shrink-0">
+            <BarChart3 size={20} />
           </div>
-          
-          <div className="space-y-3">
-            {stats.upcomingReminderRecords.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-6">No upcoming reminders.</p>
-            ) : (
-              stats.upcomingReminderRecords.slice(0, showAllReminders ? undefined : 5).map(record => {
-                const isSelected = selectedReminderId === record.id;
-                return (
-                <div 
-                  key={record.id} 
-                  onClick={() => setSelectedReminderId(isSelected ? null : record.id)}
-                  className={`flex flex-col p-3 rounded-lg border transition-all cursor-pointer ${
-                    isSelected 
-                      ? 'border-amber-400 bg-amber-50/50 shadow-sm' 
-                      : 'border-gray-100 bg-gray-50/30 hover:bg-amber-50/40'
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm">{record.customerName}</p>
-                      <p className="text-xs text-gray-500 mb-1">{record.vehicleNumber} • {record.mobileNumber}</p>
-                      <p className="text-xs text-gray-600">Last Service: {format(new Date(record.dateOfService), 'MMM dd, yyyy')}</p>
-                    </div>
-                    <div className="mt-2 sm:mt-0 text-left sm:text-right">
-                      <p className="text-xs font-bold text-amber-700">
-                        Due: {format(new Date(record.nextServiceDate), 'MMM dd, yyyy')}
-                      </p>
-                      {(() => {
-                        const days = differenceInDays(new Date(record.nextServiceDate), new Date());
-                        let daysText = "";
-                        if (days < 0) {
-                          daysText = `${Math.abs(days)} days overdue`;
-                        } else if (days === 0) {
-                          daysText = "Due today";
-                        } else {
-                          daysText = `In ${days} days`;
-                        }
-                        return (
-                          <p className={`text-xs mt-1 font-medium ${days < 0 ? 'text-rose-600' : 'text-amber-600'}`}>
-                            {daysText}
-                          </p>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  {isSelected && (
-                    <div className="mt-3 pt-3 border-t border-amber-100 flex gap-2 justify-end">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const text = generateWhatsAppText(record, 'reminder', 'Lucky Bike Care');
-                          const m = record.mobileNumber.replace(/\D/g, '');
-                          window.open(`https://wa.me/91${m}?text=${encodeURIComponent(text)}`, '_blank');
-                        }}
-                        className="px-3.5 py-1.5 text-xs font-bold bg-[#25D366] text-white rounded-lg hover:bg-[#128C7E] transition flex items-center gap-1.5 shadow-sm active:scale-95"
-                      >
-                        <MessageCircle size={13} /> Send Reminder via WhatsApp
-                      </button>
-                    </div>
-                  )}
-                </div>
-                );
-              })
-            )}
-            {stats.upcomingReminderRecords.length > 5 && (
-              <button 
-                onClick={() => setShowAllReminders(!showAllReminders)}
-                className="w-full text-center text-sm text-primary-600 font-medium pt-2 hover:text-primary-700 transition"
-              >
-                {showAllReminders ? "Show less" : `View all ${stats.upcomingReminderRecords.length} reminders`}
-              </button>
-            )}
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 text-sm sm:text-base">Workshop Reports & Analytics</h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-100 text-primary-800">
+                12 Live Metrics & Reports
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Access full revenue charts, vehicle fleet activity, customer rankings, parts audit, and monthly performance in the dedicated dashboard.
+            </p>
           </div>
         </div>
+        {onNavigate && (
+          <button
+            type="button"
+            onClick={() => onNavigate('reports')}
+            className="btn-primary text-xs px-4 py-2 flex items-center gap-2 whitespace-nowrap shrink-0 shadow-xs self-end sm:self-center"
+          >
+            <span>Open Reports & Analytics</span>
+            <ArrowRight size={14} />
+          </button>
+        )}
+      </div>
 
+      <div className="mb-6">
         {/* Pending Dues List */}
         <div className="glass-card p-5">
           <div className="flex items-center justify-between mb-4">
@@ -296,6 +246,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onViewRecord, 
           </table>
         </div>
       </div>
+
     </div>
   );
 };
@@ -309,15 +260,13 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bg, highlight }) => (
-  <div className={`glass-card p-5 border-l-4 ${highlight ? 'border-l-rose-500' : 'border-l-transparent'}`}>
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{value}</h3>
-      </div>
-      <div className={`p-3 rounded-xl ${bg}`}>
-        {icon}
-      </div>
+  <div className={`glass-card p-4 sm:p-5 flex flex-col border-l-4 ${highlight ? 'border-l-rose-500' : 'border-l-transparent'}`}>
+    <div className={`p-2.5 rounded-xl w-fit ${bg} mb-3`}>
+      {icon}
+    </div>
+    <div className="overflow-hidden">
+      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight leading-none mb-1 truncate">{value}</h3>
+      <p className="text-xs sm:text-sm font-medium text-gray-500 leading-tight truncate">{title}</p>
     </div>
   </div>
 );
